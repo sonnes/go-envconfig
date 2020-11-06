@@ -1495,7 +1495,7 @@ func TestProcessWith(t *testing.T) {
 			t.Parallel()
 
 			ctx := context.Background()
-			if err := ProcessWith(ctx, tc.input, tc.lookuper, tc.mutators...); err != nil {
+			if err := ProcessWith(ctx, false, tc.input, tc.lookuper, tc.mutators...); err != nil {
 				if tc.err == nil && tc.errMsg == "" {
 					t.Fatal(err)
 				}

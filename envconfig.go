@@ -216,12 +216,19 @@ type options struct {
 // Process processes the struct using the environment. See ProcessWith for a
 // more customizable version.
 func Process(ctx context.Context, i interface{}) error {
-	return ProcessWith(ctx, i, OsLookuper())
+	return ProcessWith(ctx, false, i, OsLookuper())
+}
+
+// Load processes the struct using the environment. Load overwrites all existing values.
+// This is for usecases where structs load with defaults and are overwritted by env vars.
+func Load(ctx context.Context, i interface{}) error {
+	return ProcessWith(ctx, true, i, OsLookuper())
 }
 
 // ProcessWith processes the given interface with the given lookuper. See the
 // package-level documentation for specific examples and behaviors.
-func ProcessWith(ctx context.Context, i interface{}, l Lookuper, fns ...MutatorFunc) error {
+// When overwite is true, the value in structs are overwritten.
+func ProcessWith(ctx context.Context, overwrite bool, i interface{}, l Lookuper, fns ...MutatorFunc) error {
 	if l == nil {
 		return ErrLookuperNil
 	}
@@ -303,7 +310,7 @@ func ProcessWith(ctx context.Context, i interface{}, l Lookuper, fns ...MutatorF
 				plu = PrefixLookuper(opts.Prefix, l)
 			}
 
-			if err := ProcessWith(ctx, ef.Interface(), plu, fns...); err != nil {
+			if err := ProcessWith(ctx, overwrite, ef.Interface(), plu, fns...); err != nil {
 				return fmt.Errorf("%s: %w", tf.Name, err)
 			}
 
@@ -322,7 +329,7 @@ func ProcessWith(ctx context.Context, i interface{}, l Lookuper, fns ...MutatorF
 		}
 
 		// The field already has a non-zero value, do not overwrite.
-		if !ef.IsZero() {
+		if !overwrite && !ef.IsZero() {
 			continue
 		}
 
